@@ -5,6 +5,11 @@
   overflow: hidden;
 }
 
+.page > app-params-sidebar {
+  flex: 0 0 auto;
+  align-self: stretch;
+}
+
 .main {
   flex: 1;
   min-width: 0;
