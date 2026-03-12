@@ -1,6 +1,14 @@
+:host {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 .sidebar {
   width: 280px;
   min-width: 280px;
+  max-height: 100vh;
   min-height: 0;
   flex-shrink: 0;
   background: #0f172a;
