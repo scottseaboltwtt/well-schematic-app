@@ -1,0 +1,162 @@
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  min-height: 0;
+  flex-shrink: 0;
+  background: #0f172a;
+  border-right: 1px solid #334155;
+  padding: 1.25rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  color: #f1f5f9;
+}
+
+.sidebar h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: #60a5fa;
+}
+
+.sidebar h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filters-section h3 {
+  margin-top: 0;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.filter-item input {
+  width: auto;
+}
+
+.param-group {
+  margin-bottom: 1rem;
+}
+
+.param-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-bottom: 0.35rem;
+}
+
+.param-group input[type="text"],
+.param-group input[type="number"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.param-group input:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+.param-group.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.param-group.checkbox input {
+  width: auto;
+}
+
+.inline-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inline-inputs input {
+  flex: 1;
+}
+
+.inline-inputs span {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.list-item {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-item input {
+  flex: 1;
+}
+
+.btn-remove {
+  width: 32px;
+  padding: 0;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #f87171;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn-remove:hover {
+  background: #334155;
+}
+
+.btn-add {
+  padding: 0.4rem 0.75rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #60a5fa;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.btn-add:hover {
+  background: #334155;
+}
+
+.btn-reset {
+  width: 100%;
+  padding: 0.5rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btn-reset:hover {
+  background: #334155;
+  color: #f1f5f9;
+}

@@ -1,0 +1,60 @@
+<div class="schematic-container">
+  <canvas #canvas></canvas>
+  @if (params.showDepthMarkers) {
+    <div #depthScale class="depth-scale">
+      @for (d of depthMarkers; track d) {
+        <div class="depth-label" [attr.data-depth]="d">{{ d | number }}'</div>
+      }
+    </div>
+  }
+  @if (params.showParameters) {
+    <div #labelsPanel class="labels-panel">
+      @for (item of parameterLabels; track $index) {
+        <div class="label-item" [attr.data-depth]="item.depth" [attr.data-side]="item.side" [attr.data-is-packer]="item.isPacker ? 'true' : null" [class.label-left]="item.side === 'left'" [class.label-right]="item.side === 'right'">
+          @if (item.side === 'left') {
+            <span class="label-text">
+              @if (item.isEvent) {
+                <span class="label-event">{{ item.label }}</span>
+              } @else {
+                <span class="label-depth">{{ item.label }}</span>
+                @if (item.spec) {
+                  <span class="label-spec">{{ item.spec }}</span>
+                }
+              }
+            </span>
+            <span class="arrow-chevron arrow-left" aria-hidden="true">&#9654;</span>
+          } @else {
+            <span class="arrow-chevron arrow-right" aria-hidden="true">&#9664;</span>
+            <span class="label-text">
+              @if (item.isEvent) {
+                <span class="label-event">{{ item.label }}</span>
+              } @else {
+                <span class="label-depth">{{ item.label }}</span>
+                @if (item.spec) {
+                  <span class="label-spec">{{ item.spec }}</span>
+                }
+              }
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+  <div class="nav-help">
+    <span>Pan: right-drag / arrows / WASD</span>
+    <span>Zoom: scroll</span>
+  </div>
+  <button type="button" class="btn-reset-view" (click)="resetView()">Reset view</button>
+  <div class="legend">
+    <div class="legend-item legend-info">Lateral: {{ lateralLength | number }}'</div>
+    <div class="legend-item"><span class="swatch formation"></span> Formation</div>
+    <div class="legend-item"><span class="swatch cement"></span> Cement</div>
+    <div class="legend-item"><span class="swatch surface"></span> Surface Casing</div>
+    <div class="legend-item"><span class="swatch intermediate"></span> Intermediate</div>
+    <div class="legend-item"><span class="swatch production"></span> Production</div>
+    <div class="legend-item"><span class="swatch tubing"></span> Tubing</div>
+    <div class="legend-item"><span class="swatch mud"></span> Mud</div>
+    <div class="legend-item"><span class="swatch perf"></span> Perforations</div>
+    <div class="legend-item"><span class="swatch packer"></span> Packers</div>
+  </div>
+</div>

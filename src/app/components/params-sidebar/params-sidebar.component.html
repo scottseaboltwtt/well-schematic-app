@@ -1,0 +1,197 @@
+<aside class="sidebar">
+  <h2>Well Schematic</h2>
+  <section class="filters-section">
+    <h3>Filters</h3>
+    <div class="filter-grid">
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showHoleSection" (ngModelChange)="update('showHoleSection', $event)" />
+        Hole Section
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showCasing" (ngModelChange)="update('showCasing', $event)" />
+        Casing
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showBHA" (ngModelChange)="update('showBHA', $event)" />
+        BHA
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showMud" (ngModelChange)="update('showMud', $event)" />
+        Mud
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showFormation" (ngModelChange)="update('showFormation', $event)" />
+        Formation
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showDirectional" (ngModelChange)="update('showDirectional', $event)" />
+        Directional
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showParameters" (ngModelChange)="update('showParameters', $event)" />
+        Parameters
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showCement" (ngModelChange)="update('showCement', $event)" />
+        Cement
+      </label>
+      <label class="filter-item">
+        <input type="checkbox" [ngModel]="params.showHazard" (ngModelChange)="update('showHazard', $event)" />
+        Hazard
+      </label>
+    </div>
+  </section>
+  <label class="filter-item offset-toggle">
+    <input type="checkbox" [ngModel]="showOffsetWell" (ngModelChange)="showOffsetWellChange.emit($event)" />
+    Offset well comparison
+  </label>
+  <h3>Well Parameters</h3>
+  <div class="param-group">
+    <label>Well Name</label>
+    <input type="text" [ngModel]="params.wellName" (ngModelChange)="update('wellName', $event)" />
+  </div>
+  <div class="param-group">
+    <label>KOP Depth (ft)</label>
+    <input type="number" [ngModel]="params.kopDepth" (ngModelChange)="updateNumber('kopDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Build Rate (°/100ft)</label>
+    <input type="number" step="0.5" [ngModel]="params.buildRate" (ngModelChange)="updateNumber('buildRate', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Max Inclination (°)</label>
+    <input type="number" [ngModel]="params.maxInclination" (ngModelChange)="updateNumber('maxInclination', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Total Depth (ft)</label>
+    <input type="number" [ngModel]="params.totalDepth" (ngModelChange)="updateNumber('totalDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Surface Casing (ft)</label>
+    <input type="number" [ngModel]="params.surfaceCasingDepth" (ngModelChange)="updateNumber('surfaceCasingDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Intermediate Casing (ft)</label>
+    <input type="number" [ngModel]="params.intermediateCasingDepth" (ngModelChange)="updateNumber('intermediateCasingDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Production Casing (ft)</label>
+    <input type="number" [ngModel]="params.productionCasingDepth" (ngModelChange)="updateNumber('productionCasingDepth', $event)" />
+  </div>
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showPerforations" (ngModelChange)="update('showPerforations', $event)" />
+      Show Perforations
+    </label>
+  </div>
+  @if (params.showPerforations) {
+    <div class="param-group">
+      <label>Perforation zone length (ft)</label>
+      <input type="number" [ngModel]="params.perforationZoneLength" (ngModelChange)="updateNumber('perforationZoneLength', $event)" min="10" />
+    </div>
+    <div class="param-group">
+      <label>Perforation Depths (ft)</label>
+      @for (d of params.perforationDepths; track $index) {
+        <div class="list-item">
+          <input type="number" [ngModel]="d" (ngModelChange)="updatePerfDepth($index, $event)" />
+          <button type="button" class="btn-remove" (click)="removePerforation($index)">×</button>
+        </div>
+      }
+      <button type="button" class="btn-add" (click)="addPerforation()">+ Add</button>
+    </div>
+  }
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showDepthMarkers" (ngModelChange)="update('showDepthMarkers', $event)" />
+      Depth markers
+    </label>
+  </div>
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showCasingSpecs" (ngModelChange)="update('showCasingSpecs', $event)" />
+      Casing specs
+    </label>
+  </div>
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showMudWeight" (ngModelChange)="update('showMudWeight', $event)" />
+      Mud weight scale
+    </label>
+  </div>
+  @if (params.showMudWeight) {
+    <div class="param-group">
+      <label>Mud weight (ppg) min–max</label>
+      <div class="inline-inputs">
+        <input type="number" step="0.1" [ngModel]="params.mudWeightMin" (ngModelChange)="updateNumber('mudWeightMin', $event)" placeholder="min" />
+        <span>–</span>
+        <input type="number" step="0.1" [ngModel]="params.mudWeightMax" (ngModelChange)="updateNumber('mudWeightMax', $event)" placeholder="max" />
+      </div>
+    </div>
+  }
+  @if (params.showCasingSpecs) {
+    <div class="param-group">
+      <label>Surface spec</label>
+      <input type="text" [ngModel]="params.surfaceCasingSpec" (ngModelChange)="update('surfaceCasingSpec', $event)" />
+    </div>
+    <div class="param-group">
+      <label>Intermediate spec</label>
+      <input type="text" [ngModel]="params.intermediateCasingSpec" (ngModelChange)="update('intermediateCasingSpec', $event)" />
+    </div>
+    <div class="param-group">
+      <label>Production spec</label>
+      <input type="text" [ngModel]="params.productionCasingSpec" (ngModelChange)="update('productionCasingSpec', $event)" />
+    </div>
+  }
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showCutaway" (ngModelChange)="update('showCutaway', $event)" />
+      Cutaway view
+    </label>
+  </div>
+  @if (params.showCutaway) {
+    <div class="param-group">
+      <label>Cut angle (°)</label>
+      <input type="number" [ngModel]="params.cutawayAngle" (ngModelChange)="updateNumber('cutawayAngle', $event)" min="0" max="360" />
+    </div>
+  }
+  <div class="param-group checkbox">
+    <label>
+      <input type="checkbox" [ngModel]="params.showPackers" (ngModelChange)="update('showPackers', $event)" />
+      Show Packers
+    </label>
+  </div>
+  @if (params.showPackers) {
+    <div class="param-group">
+      <label>Packer Depths (ft)</label>
+      @for (d of params.packerDepths; track $index) {
+        <div class="list-item">
+          <input type="number" [ngModel]="d" (ngModelChange)="updatePackerDepth($index, $event)" />
+          <button type="button" class="btn-remove" (click)="removePacker($index)">×</button>
+        </div>
+      }
+      <button type="button" class="btn-add" (click)="addPacker()">+ Add</button>
+    </div>
+  }
+  <h3>Event Markers</h3>
+  <div class="param-group">
+    <label>Bit depth (ft)</label>
+    <input type="number" [ngModel]="params.bitDepth" (ngModelChange)="updateNumber('bitDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>EOC depth (ft)</label>
+    <input type="number" [ngModel]="params.eocDepth" (ngModelChange)="updateNumber('eocDepth', $event)" />
+  </div>
+  <div class="param-group">
+    <label>Losses depths (ft)</label>
+    @for (d of params.lossesDepths; track $index) {
+      <div class="list-item">
+        <input type="number" [ngModel]="d" (ngModelChange)="updateLossesDepth($index, $event)" />
+        <button type="button" class="btn-remove" (click)="removeLosses($index)">×</button>
+      </div>
+    }
+    <button type="button" class="btn-add" (click)="addLosses()">+ Add</button>
+  </div>
+  <div class="param-group">
+    <button type="button" class="btn-reset" (click)="reset()">Reset to Defaults</button>
+  </div>
+</aside>

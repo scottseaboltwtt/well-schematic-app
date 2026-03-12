@@ -1,0 +1,17 @@
+<div class="page">
+  <app-params-sidebar [params]="params" (paramsChange)="onParamsChange($event)" [showOffsetWell]="showOffsetWell" (showOffsetWellChange)="showOffsetWell = $event"></app-params-sidebar>
+  <main class="main">
+    <div class="wells-container" [class.two-wells]="showOffsetWell">
+      <div class="well-cell">
+        <div class="well-title">{{ params.wellName }}</div>
+        <app-well-schematic-3d [params]="params"></app-well-schematic-3d>
+      </div>
+      @if (showOffsetWell) {
+        <div class="well-cell">
+          <div class="well-title">{{ offsetWell.wellName }}</div>
+          <app-well-schematic-3d [params]="offsetWell"></app-well-schematic-3d>
+        </div>
+      }
+    </div>
+  </main>
+</div>
