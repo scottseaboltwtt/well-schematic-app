@@ -14,6 +14,7 @@ export class ParamsSidebarComponent {
   @Output() paramsChange = new EventEmitter<WellSchematicParams>();
   @Input() showOffsetWell = false;
   @Output() showOffsetWellChange = new EventEmitter<boolean>();
+  @Input() hideOffsetWell = false;
 
   update<K extends keyof WellSchematicParams>(key: K, value: WellSchematicParams[K]): void {
     const next = { ...this.params, [key]: value };

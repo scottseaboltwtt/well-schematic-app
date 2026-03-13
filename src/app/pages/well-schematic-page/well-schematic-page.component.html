@@ -1,17 +1,127 @@
-<div class="page">
-  <app-params-sidebar [params]="params" (paramsChange)="onParamsChange($event)" [showOffsetWell]="showOffsetWell" (showOffsetWellChange)="showOffsetWell = $event"></app-params-sidebar>
+<div class="page" [class.imported-mode]="!!importedData">
+  <app-params-sidebar [params]="params" (paramsChange)="onParamsChange($event)" [showOffsetWell]="showOffsetWell" (showOffsetWellChange)="showOffsetWell = $event" [hideOffsetWell]="!!importedData"></app-params-sidebar>
   <main class="main">
-    <div class="wells-container" [class.two-wells]="showOffsetWell">
-      <div class="well-cell">
-        <div class="well-title">{{ params.wellName }}</div>
-        <app-well-schematic-3d [params]="params"></app-well-schematic-3d>
-      </div>
-      @if (showOffsetWell) {
-        <div class="well-cell">
-          <div class="well-title">{{ offsetWell.wellName }}</div>
-          <app-well-schematic-3d [params]="offsetWell"></app-well-schematic-3d>
+    <div class="toolbar">
+      <label class="btn-import">
+        <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" hidden />
+        Import Wellbore Data (.xlsx)
+      </label>
+      @if (importedData) {
+        <div class="tabs">
+          <button type="button" class="tab" [class.active]="activeTab === 'schematic'" (click)="activeTab = 'schematic'">Schematic</button>
+          <button type="button" class="tab" [class.active]="activeTab === 'data'" (click)="activeTab = 'data'">Data</button>
         </div>
+        <button type="button" class="btn-clear" (click)="clearImport()">Clear import</button>
+      }
+      @if (importError) {
+        <span class="import-error">{{ importError }}</span>
       }
     </div>
+    @if (importedData) {
+      @if (activeTab === 'schematic') {
+        <div class="wells-container">
+          <div class="well-cell">
+            <div class="well-title">{{ params.wellName }}</div>
+            <app-well-schematic-3d [params]="params" [importedData]="importedData"></app-well-schematic-3d>
+          </div>
+        </div>
+      } @else {
+        <div class="data-tables">
+        <section class="data-section">
+          <h3>Directional Survey</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>MD (ft)</th>
+                  <th>TVD (ft)</th>
+                  <th>Azimuth (deg)</th>
+                  <th>N-S (ft)</th>
+                  <th>E-W (ft)</th>
+                  <th>Inclination (deg)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of paginatedSurveyStations; track row.md + '-' + row.tvd; let i = $index) {
+                  <tr>
+                    <td><input type="number" class="table-input" [ngModel]="row.index" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'index', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.md" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'md', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.tvd" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'tvd', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.1" [ngModel]="row.azimuth" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'azimuth', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.01" [ngModel]="row.nSouth" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'nSouth', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.01" [ngModel]="row.eWest" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'eWest', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.1" [ngModel]="row.inclination" (ngModelChange)="updateSurveyStation(surveyGlobalIndex(i), 'inclination', $event)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (totalSurveyPages > 1) {
+            <div class="pagination">
+              <button type="button" [disabled]="surveyPage <= 1" (click)="surveyPage = surveyPage - 1">Prev</button>
+              <span class="page-info">{{ (surveyPage - 1) * pageSize + 1 }}-{{ surveyRangeEnd() }} of {{ importedData.surveyStations.length }}</span>
+              <button type="button" [disabled]="surveyPage >= totalSurveyPages" (click)="surveyPage = surveyPage + 1">Next</button>
+            </div>
+          }
+        </section>
+        <section class="data-section">
+          <h3>Perforation Intervals</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Alias</th>
+                  <th>Top MD (ft)</th>
+                  <th>Bot MD (ft)</th>
+                  <th>Top TVD (ft)</th>
+                  <th>Bot TVD (ft)</th>
+                  <th>Diameter (in)</th>
+                  <th>No. of Perfs</th>
+                  <th>Perf Phasing</th>
+                  <th>No. of Clusters</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of paginatedPerforationIntervals; track row.topMd + '-' + row.botMd; let i = $index) {
+                  <tr>
+                    <td><input type="text" class="table-input" [ngModel]="row.alias" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'alias', $event)" placeholder="—" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.topMd" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'topMd', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.botMd" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'botMd', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.01" [ngModel]="row.topTvd" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'topTvd', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.01" [ngModel]="row.botTvd" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'botTvd', $event)" /></td>
+                    <td><input type="number" class="table-input" step="0.01" [ngModel]="row.diameter" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'diameter', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.numPerfs" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'numPerfs', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.perfPhasing" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'perfPhasing', $event)" /></td>
+                    <td><input type="number" class="table-input" [ngModel]="row.numClusters" (ngModelChange)="updatePerforationInterval(perfGlobalIndex(i), 'numClusters', $event)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (totalPerfPages > 1) {
+            <div class="pagination">
+              <button type="button" [disabled]="perfPage <= 1" (click)="perfPage = perfPage - 1">Prev</button>
+              <span class="page-info">{{ (perfPage - 1) * pageSize + 1 }}-{{ perfRangeEnd() }} of {{ importedData.perforationIntervals.length }}</span>
+              <button type="button" [disabled]="perfPage >= totalPerfPages" (click)="perfPage = perfPage + 1">Next</button>
+            </div>
+          }
+        </section>
+        </div>
+      }
+    } @else {
+      <div class="wells-container" [class.two-wells]="showOffsetWell">
+        <div class="well-cell">
+          <div class="well-title">{{ params.wellName }}</div>
+          <app-well-schematic-3d [params]="params"></app-well-schematic-3d>
+        </div>
+        @if (showOffsetWell) {
+          <div class="well-cell">
+            <div class="well-title">{{ offsetWell.wellName }}</div>
+            <app-well-schematic-3d [params]="offsetWell"></app-well-schematic-3d>
+          </div>
+        }
+      </div>
+    }
   </main>
 </div>

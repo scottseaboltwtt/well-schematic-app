@@ -41,10 +41,12 @@
       </label>
     </div>
   </section>
-  <label class="filter-item offset-toggle">
-    <input type="checkbox" [ngModel]="showOffsetWell" (ngModelChange)="showOffsetWellChange.emit($event)" />
-    Offset well comparison
-  </label>
+  @if (!hideOffsetWell) {
+    <label class="filter-item offset-toggle">
+      <input type="checkbox" [ngModel]="showOffsetWell" (ngModelChange)="showOffsetWellChange.emit($event)" />
+      Offset well comparison
+    </label>
+  }
   <h3>Well Parameters</h3>
   <div class="param-group">
     <label>Well Name</label>

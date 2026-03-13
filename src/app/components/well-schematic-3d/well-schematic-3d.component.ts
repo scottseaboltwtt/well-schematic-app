@@ -12,7 +12,7 @@ import { DecimalPipe } from '@angular/common';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TrajectoryService } from '../../services/trajectory.service';
-import { WellSchematicParams, DEFAULT_PARAMS, TrajectoryPoint, FormationLayer } from '../../models/well-schematic.model';
+import { WellSchematicParams, DEFAULT_PARAMS, TrajectoryPoint, FormationLayer, ImportedWellboreData } from '../../models/well-schematic.model';
 
 @Component({
   selector: 'app-well-schematic-3d',
@@ -27,6 +27,7 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('labelsPanel') labelsPanelRef?: ElementRef<HTMLElement>;
 
   @Input() params: WellSchematicParams = { ...DEFAULT_PARAMS };
+  @Input() importedData?: ImportedWellboreData | null;
 
   get depthMarkers(): number[] {
     const p = this.params;
@@ -174,7 +175,7 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
     const height = Math.max(parent?.clientHeight ?? 600, 400);
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x1e293b);
+    this.scene.background = new THREE.Color(0x051510);
 
     // Tighter far plane improves depth precision when zooming (avoids z-fighting)
     const sceneExtent = Math.max(this.params.totalDepth * 1.5, 25000);
@@ -257,13 +258,47 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
 
     const p = this.params;
     const scale = 1;
-    const points = this.trajectoryService.calculateTrajectory(
-      p.kopDepth,
-      p.buildRate,
-      p.maxInclination,
-      p.totalDepth
-    );
-    const path = points.map((pt) => new THREE.Vector3(pt.x * scale, pt.y * scale, pt.z * scale));
+    let points: TrajectoryPoint[];
+    let path: THREE.Vector3[];
+
+    if (this.importedData?.surveyStations?.length) {
+      // Use actual survey path when imported; params (from merge) influence casing, formation, etc.
+      points = this.trajectoryService.trajectoryFromSurvey(this.importedData.surveyStations);
+      path = points.map((pt) => new THREE.Vector3(pt.x * scale, pt.y * scale, pt.z * scale));
+      // Align with non-imported L formation: vertical at x=0, lateral in -Z (azimuth 180°)
+      const first = path[0].clone();
+      const last = path[path.length - 1].clone();
+      const lateralX = last.x - first.x;
+      const lateralZ = last.z - first.z;
+      const horizLen = Math.sqrt(lateralX * lateralX + lateralZ * lateralZ);
+      if (horizLen > 1) {
+        const angle = Math.atan2(lateralX, lateralZ) + Math.PI;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        path = path.map((pt) => {
+          const rx = pt.x - first.x;
+          const rz = pt.z - first.z;
+          return new THREE.Vector3(rx * c - rz * s, pt.y - first.y, rx * s + rz * c);
+        });
+      } else {
+        path = path.map((pt) => new THREE.Vector3(pt.x - first.x, pt.y - first.y, pt.z - first.z));
+      }
+    } else {
+      // Use calculated trajectory (existing data)
+      points = this.trajectoryService.calculateTrajectory(
+        p.kopDepth,
+        p.buildRate,
+        p.maxInclination,
+        p.totalDepth
+      );
+      path = points.map((pt) => new THREE.Vector3(pt.x * scale, pt.y * scale, pt.z * scale));
+    }
+
+    // Flip vertically and cutaway side only when using imported data
+    if (this.importedData?.surveyStations?.length) {
+      path = path.map((pt) => new THREE.Vector3(pt.x, -pt.y, pt.z));
+    }
+
     this.pathPoints = path;
     this.trajectoryPoints = points;
     const curve = new THREE.CatmullRomCurve3(path, false);
@@ -411,10 +446,21 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
 
     // Perforation zones: tunnels through casing → cement → formation (shaped-charge jets)
     if (p.showPerforations) {
-      for (const depth of p.perforationDepths) {
-        const idx = points.findIndex((pt) => pt.measuredDepth >= depth);
-        if (idx >= 0 && idx < path.length) {
-          this.addPerforationTunnels(path, idx, points, radiusScale, clipPlanes);
+      if (this.importedData?.perforationIntervals?.length) {
+        for (const interval of this.importedData.perforationIntervals) {
+          const centerMd = (interval.topMd + interval.botMd) / 2;
+          const zoneLen = interval.botMd - interval.topMd;
+          const idx = points.findIndex((pt) => pt.measuredDepth >= centerMd);
+          if (idx >= 0 && idx < path.length) {
+            this.addPerforationTunnels(path, idx, points, radiusScale, clipPlanes, zoneLen);
+          }
+        }
+      } else {
+        for (const depth of p.perforationDepths) {
+          const idx = points.findIndex((pt) => pt.measuredDepth >= depth);
+          if (idx >= 0 && idx < path.length) {
+            this.addPerforationTunnels(path, idx, points, radiusScale, clipPlanes);
+          }
         }
       }
     }
@@ -428,23 +474,30 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
     const angleRad = angleDeg * (Math.PI / 180);
     const nx = Math.cos(angleRad);
     const nz = Math.sin(angleRad);
-    // Keep half facing away from camera so we see the cut face (interior layers)
-    // Camera at +x: keep x<=0 half to see cut cross-section
-    const n = new THREE.Vector3(-nx, 0, -nz);
+    // Imported: clip other side (camera at -X). Non-imported: original clip (camera at +X).
+    const flip = this.importedData?.surveyStations?.length ? 1 : -1;
+    const n = new THREE.Vector3(flip * nx, 0, flip * nz);
     return [new THREE.Plane(n, 0)];
   }
 
   /** Set camera for cutaway view: hook (horizontal) to the right, layers visible */
   setCutawayView(): void {
     if (!this.camera || !this.controls) return;
-    const midY = -this.params.totalDepth / 2;
     const midZ = -4000;
-    this.camera.position.set(2500, midY, midZ);
-    this.controls.target.set(0, midY, midZ);
+    if (this.importedData?.surveyStations?.length) {
+      const midY = this.params.totalDepth / 2;
+      this.camera.position.set(-2500, midY, midZ);
+      this.controls.target.set(0, midY, midZ);
+    } else {
+      const midY = -this.params.totalDepth / 2;
+      this.camera.position.set(2500, midY, midZ);
+      this.controls.target.set(0, midY, midZ);
+    }
   }
 
   private getTangent(path: THREE.Vector3[], idx: number): THREE.Vector3 {
-    if (idx <= 0) return new THREE.Vector3(0, -1, 0);
+    const down = this.importedData?.surveyStations?.length ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, -1, 0);
+    if (idx <= 0) return down;
     if (idx >= path.length - 1) return new THREE.Vector3().subVectors(path[idx], path[idx - 1]).normalize();
     return new THREE.Vector3().subVectors(path[idx + 1], path[idx - 1]).normalize();
   }
@@ -454,11 +507,17 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
     const pos = path[idx].clone();
     const tangent = this.getTangent(path, idx);
     const shoe = new THREE.Mesh(
-      new THREE.ConeGeometry(radius * 1.2, radius * 0.6, 16),
-      new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.3, clippingPlanes: clipPlanes })
+      new THREE.TorusGeometry(radius * 1.02, radius * 0.08, 12, 24),
+      new THREE.MeshStandardMaterial({
+        color,
+        metalness: 0.6,
+        roughness: 0.35,
+        side: clipPlanes.length ? THREE.DoubleSide : THREE.FrontSide,
+        clippingPlanes: clipPlanes,
+      })
     );
     shoe.position.copy(pos);
-    shoe.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent.clone().negate());
+    shoe.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent);
     this.wellboreMesh!.add(shoe);
   }
 
@@ -545,8 +604,9 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
 
   private addFormationColumn(path: THREE.Vector3[], points: TrajectoryPoint[], layers: FormationLayer[], formationInnerR: number, clipPlanes: THREE.Plane[]): void {
     for (const layer of layers) {
-      const startIdx = points.findIndex((pt) => pt.measuredDepth >= layer.depthTop);
-      const endIdx = points.findIndex((pt) => pt.measuredDepth >= layer.depthBottom);
+      // Formation tops are TVD (vertical depth); use trueVerticalDepth for correct placement
+      const startIdx = points.findIndex((pt) => pt.trueVerticalDepth >= layer.depthTop);
+      const endIdx = points.findIndex((pt) => pt.trueVerticalDepth >= layer.depthBottom);
       if (startIdx < 0 || endIdx < 0 || startIdx >= endIdx) continue;
       const segPath = path.slice(startIdx, endIdx + 1);
       if (segPath.length < 2) continue;
@@ -729,8 +789,8 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /** Perforation tunnels: shaped charges create jets through casing, cement, into formation */
-  private addPerforationTunnels(path: THREE.Vector3[], idx: number, points: TrajectoryPoint[], radiusScale: number, clipPlanes: THREE.Plane[]): void {
-    const zoneLen = this.params.perforationZoneLength || 40;
+  private addPerforationTunnels(path: THREE.Vector3[], idx: number, points: TrajectoryPoint[], radiusScale: number, clipPlanes: THREE.Plane[], zoneLenOverride?: number): void {
+    const zoneLen = zoneLenOverride ?? this.params.perforationZoneLength ?? 40;
     const startIdx = Math.max(0, idx - Math.floor(zoneLen / 20));
     const endIdx = Math.min(path.length - 1, idx + Math.floor(zoneLen / 20));
     const tunnelMat = new THREE.MeshStandardMaterial({
@@ -971,7 +1031,7 @@ export class WellSchematic3dComponent implements OnInit, OnChanges, OnDestroy {
       const items = this.labelsPanelRef.nativeElement.querySelectorAll<HTMLElement>('.label-item');
       const scale = zoomScale;
       const arrowOffset = 80 * scale;
-      const MIN_LABEL_GAP = 28 * scale;
+      const MIN_LABEL_GAP = Math.max(44, 32 * scale);
 
       const leftItems: { el: HTMLElement; y: number }[] = [];
       const rightItems: { el: HTMLElement; y: number }[] = [];
