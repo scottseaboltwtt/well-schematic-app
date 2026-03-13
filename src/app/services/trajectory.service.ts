@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { TrajectoryPoint } from '../models/well-schematic.model';
+import { TrajectoryPoint, SurveyStation } from '../models/well-schematic.model';
 
 @Injectable({ providedIn: 'root' })
 export class TrajectoryService {
@@ -63,6 +63,44 @@ export class TrajectoryService {
       md += step;
     }
 
+    // Ensure final point at totalDepth (step may not land exactly)
+    const last = points[points.length - 1];
+    if (last && last.measuredDepth < totalDepth) {
+      const md = totalDepth;
+      let tvd: number;
+      let incl: number;
+      let disp: number;
+      if (md <= kopDepth) {
+        incl = 0;
+        tvd = md;
+        disp = 0;
+      } else if (md <= buildEndMd) {
+        const arcLen = md - kopDepth;
+        const theta = arcLen / radius;
+        incl = theta * (180 / Math.PI);
+        tvd = kopDepth + radius * Math.sin(theta);
+        disp = radius * (1 - Math.cos(theta));
+      } else {
+        const tangentLen = md - buildEndMd;
+        const buildTvd = radius * Math.sin(maxInclRad);
+        const buildDisp = radius * (1 - Math.cos(maxInclRad));
+        tvd = kopDepth + buildTvd + tangentLen * Math.cos(maxInclRad);
+        disp = buildDisp + tangentLen * Math.sin(maxInclRad);
+        incl = maxInclination;
+      }
+      const x = disp * Math.sin(azim * (Math.PI / 180));
+      const z = disp * Math.cos(azim * (Math.PI / 180));
+      points.push({
+        measuredDepth: md,
+        trueVerticalDepth: tvd,
+        inclination: incl,
+        azimuth: azim,
+        x,
+        y: -tvd,
+        z,
+      });
+    }
+
     return points;
   }
 
@@ -72,6 +110,23 @@ export class TrajectoryService {
       x: p.x * scale,
       y: p.y * scale,
       z: p.z * scale,
+    }));
+  }
+
+  /**
+   * Build trajectory from survey stations. Uses N-S (ft) and E-W (ft) for x/z.
+   * Y = -TVD (depth down). Conventions: x = E-W (east), z = N-S (north).
+   */
+  trajectoryFromSurvey(stations: SurveyStation[]): TrajectoryPoint[] {
+    if (!stations?.length) return [];
+    return stations.map((s) => ({
+      measuredDepth: s.md,
+      trueVerticalDepth: s.tvd,
+      inclination: s.inclination,
+      azimuth: s.azimuth,
+      x: s.eWest,
+      y: -s.tvd,
+      z: s.nSouth,
     }));
   }
 

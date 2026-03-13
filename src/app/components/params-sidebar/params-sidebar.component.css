@@ -11,8 +11,8 @@
   max-height: 100vh;
   min-height: 0;
   flex-shrink: 0;
-  background: #0f172a;
-  border-right: 1px solid #334155;
+  background: #051510;
+  border-right: 1px solid #0f2a22;
   padding: 1.25rem;
   overflow-y: auto;
   overflow-x: hidden;
@@ -23,7 +23,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0 0 0.75rem;
-  color: #60a5fa;
+  color: #5eead4;
 }
 
 .sidebar h3 {
@@ -74,8 +74,8 @@
 .param-group input[type="number"] {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #0a1a14;
+  border: 1px solid #0f2a22;
   border-radius: 6px;
   color: #f1f5f9;
   font-size: 0.875rem;
@@ -83,7 +83,7 @@
 
 .param-group input:focus {
   outline: none;
-  border-color: #60a5fa;
+  border-color: #5eead4;
 }
 
 .param-group.checkbox label {
@@ -125,8 +125,8 @@
 .btn-remove {
   width: 32px;
   padding: 0;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #0a1a14;
+  border: 1px solid #0f2a22;
   border-radius: 6px;
   color: #f87171;
   cursor: pointer;
@@ -135,29 +135,29 @@
 }
 
 .btn-remove:hover {
-  background: #334155;
+  background: #0f2a22;
 }
 
 .btn-add {
   padding: 0.4rem 0.75rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #0a1a14;
+  border: 1px solid #0f2a22;
   border-radius: 6px;
-  color: #60a5fa;
+  color: #5eead4;
   cursor: pointer;
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }
 
 .btn-add:hover {
-  background: #334155;
+  background: #0f2a22;
 }
 
 .btn-reset {
   width: 100%;
   padding: 0.5rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #0a1a14;
+  border: 1px solid #0f2a22;
   border-radius: 6px;
   color: #94a3b8;
   cursor: pointer;
@@ -165,6 +165,6 @@
 }
 
 .btn-reset:hover {
-  background: #334155;
+  background: #0f2a22;
   color: #f1f5f9;
 }

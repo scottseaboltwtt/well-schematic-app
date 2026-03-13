@@ -71,7 +71,36 @@ export interface TrajectoryPoint {
   z: number;
 }
 
-function defaultFormationLayers(totalDepth: number): FormationLayer[] {
+/** Directional survey station - columns: #, MD (ft), TVD (ft), Azimuth (deg), N-S (ft), E-W (ft), Inclination (deg) */
+export interface SurveyStation {
+  index: number;
+  md: number;
+  tvd: number;
+  azimuth: number;
+  nSouth: number;
+  eWest: number;
+  inclination: number;
+}
+
+/** Perforation interval - columns: Alias, Top MD (ft), Bot MD (ft), Top TVD (ft), Bot TVD (ft), Diameter (in), No. of Perfs, Perf Phasing, No. of Clusters */
+export interface PerforationInterval {
+  alias?: string;
+  topMd: number;
+  botMd: number;
+  topTvd: number;
+  botTvd: number;
+  diameter: number;
+  numPerfs: number;
+  perfPhasing: number;
+  numClusters: number;
+}
+
+export interface ImportedWellboreData {
+  surveyStations: SurveyStation[];
+  perforationIntervals: PerforationInterval[];
+}
+
+export function defaultFormationLayers(totalDepth: number): FormationLayer[] {
   // Typical Permian/Delaware stratigraphy: overburden → target zone (distinct colors)
   return [
     { depthTop: 0, depthBottom: 2500, color: '#b8956e', name: 'Overburden Shale' },
@@ -82,7 +111,7 @@ function defaultFormationLayers(totalDepth: number): FormationLayer[] {
   ];
 }
 
-function defaultMudWeightData(totalDepth: number): MudWeightPoint[] {
+export function defaultMudWeightData(totalDepth: number): MudWeightPoint[] {
   const pts: MudWeightPoint[] = [];
   for (let d = 0; d <= totalDepth; d += 500) {
     const base = 8.5 + (d / totalDepth) * 3.5;

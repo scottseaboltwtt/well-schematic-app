@@ -8,6 +8,6 @@ html, body {
   padding: 0;
   height: 100%;
   font-family: system-ui, -apple-system, sans-serif;
-  background: #1e293b;
+  background: radial-gradient(ellipse at center, #0d1f1a 0%, #051510 50%, #030c08 100%);
   color: #f1f5f9;
 }

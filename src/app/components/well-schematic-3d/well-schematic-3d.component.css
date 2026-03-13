@@ -12,6 +12,7 @@
   position: relative;
 }
 
+
 .schematic-container canvas {
   display: block;
   width: 100%;
@@ -26,7 +27,7 @@
   display: flex;
   gap: 16px;
   font-size: 10px;
-  color: #64748b;
+  color: #5eead4;
   pointer-events: none;
 }
 
@@ -35,8 +36,8 @@
   top: 12px;
   right: 12px;
   padding: 6px 12px;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid #475569;
+  background: rgba(5, 21, 16, 0.95);
+  border: 1px solid #0f2a22;
   border-radius: 6px;
   color: #94a3b8;
   font-size: 12px;
@@ -45,16 +46,16 @@
 }
 
 .btn-reset-view:hover {
-  background: #334155;
-  color: #f1f5f9;
+  background: #0f2a22;
+  color: #5eead4;
 }
 
 .legend {
   position: absolute;
   bottom: 12px;
   left: 12px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid #334155;
+  background: rgba(5, 21, 16, 0.95);
+  border: 1px solid #0f2a22;
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 12px;
@@ -356,7 +357,7 @@
 
 .legend-info {
   font-weight: 600;
-  color: #fbbf24;
+  color: #5eead4;
 }
 
 .swatch.formation { background: #9c7b5c; }
@@ -368,3 +369,8 @@
 .swatch.mud { background: #4a5d3a; }
 .swatch.perf { background: #ef4444; }
 .swatch.packer { background: #fbbf24; }
+.swatch.casing-shoe {
+  background: transparent;
+  border: 2px solid #a8a8a8;
+  border-radius: 50%;
+}
